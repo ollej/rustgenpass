@@ -3,10 +3,8 @@ use rustgenpass::{generate_with_config, get_hostname, Cli};
 
 fn main() -> Result<(), String> {
     /* TODO:
-     * Add tests
      * Support sha512 hashing
      * Builder interface for library
-     * Write documentation
      */
     let cli = Cli::parse();
     let password = cli.password.unwrap_or_else(|| {
