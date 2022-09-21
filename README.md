@@ -1,9 +1,10 @@
 RustGenPass
 ===========
 
-An implementation in Rust of the SuperGenPass utility.
+An implementation in Rust of the [SuperGenPass](https://chriszarate.github.io/supergenpass/) utility.
 
-https://chriszarate.github.io/supergenpass/
+Hash a master password into unique, complex passwords specific for each
+website.
 
 Usage
 -----

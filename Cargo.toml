@@ -1,7 +1,7 @@
 [package]
 name = "rustgenpass"
 authors = ["Olle Wreede <olle@wreede.se>"]
-description = "Generate a hashed password similar to supergenpass."
+description = "Generate a hashed password similar to SuperGenPass."
 version = "0.1.0"
 edition = "2021"
 
