@@ -12,7 +12,7 @@ Usage
 -----
 
 ```
-rustgenpass 0.2.0
+rustgenpass 0.3.0
 Generate a hashed password similar to SuperGenPass.
 
 USAGE:
@@ -28,7 +28,7 @@ OPTIONS:
     -P, --passthrough            Passthrough domain unmodified to hash function
     -r, --rounds <ROUNDS>        Number of hash rounds [default: 10]
     -s, --secret <SECRET>        Secret added to the master password
-    -V, --version                Print version informationrustgenpass 0.2.0
+    -V, --version                Print version informationrustgenpass 0.3.0
 ```
 
 License

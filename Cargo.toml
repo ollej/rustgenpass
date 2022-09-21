@@ -2,7 +2,7 @@
 name = "rustgenpass"
 authors = ["Olle Wreede <olle@wreede.se>"]
 description = "Generate a hashed password similar to SuperGenPass."
-version = "0.2.0"
+version = "0.3.0"
 edition = "2021"
 
 [dependencies]
