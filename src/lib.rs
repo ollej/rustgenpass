@@ -225,6 +225,7 @@ pub fn generate_with_config<S: AsRef<str>>(
 }
 
 #[derive(Clone, clap::ArgEnum)]
+/// Supported hashing algorithms
 pub enum HashAlgorithm {
     MD5,
     SHA512,
