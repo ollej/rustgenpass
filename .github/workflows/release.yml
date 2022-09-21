@@ -44,13 +44,13 @@ jobs:
         if: runner.os == 'Linux'
         run: |
           mkdir ${{ matrix.config.directory }}
-          cp target/${{ matrix.config.target }}/release/${{ matrix.config.artifact_name }} README.md LICENSE ${{ matrix.config.directory }}/
+          cp target/release/${{ matrix.config.artifact_name }} README.md LICENSE ${{ matrix.config.directory }}
           tar -zcf ${{ matrix.config.zip_file }} ${{ matrix.config.directory }}
       - name: Zip release archive
         if: runner.os == 'Windows' || runner.os == 'macOS'
         run: |
           mkdir -p ${{ matrix.config.directory }}
-          cp target/${{ matrix.config.target }}/release/${{ matrix.config.artifact_name }} README.md LICENSE ${{ matrix.config.directory }}/
+          cp target/release/${{ matrix.config.artifact_name }} README.md LICENSE ${{ matrix.config.directory }}
           7z a -tzip ${{ matrix.config.zip_file }} ${{ matrix.config.directory }}
       - name: Upload binaries to release
         uses: svenstaro/upload-release-action@v2
