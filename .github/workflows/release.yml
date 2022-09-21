@@ -1,0 +1,61 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  publish:
+    name: Release for ${{ matrix.config.os }}
+    runs-on: ${{ matrix.config.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        config:
+          - os: ubuntu-latest
+            artifact_name: rgp
+            zip_file: rustgenpass.tar.gz
+            asset_name: rustgenpass-linux-$tag.tar.gz
+            directory: rustgenpass-${{ github.ref_name }}
+          - os: windows-latest
+            artifact_name: rgp.exe
+            zip_file: rgp.zip
+            asset_name: rustgenpass-windows-$tag.zip
+            directory: rustgenpass-${{ github.ref_name }}
+          - os: macos-latest
+            artifact_name: rgp
+            zip_file: rgp.zip
+            asset_name: rustgenpass-macos-$tag.zip
+            directory: rustgenpass-${{ github.ref_name }}
+
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          override: true
+      - uses: Swatinem/rust-cache@v2
+      - uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: --release --locked --all-targets
+      - name: Zip release archive
+        if: runner.os == 'Linux'
+        run: |
+          mkdir ${{ matrix.config.directory }}
+          cp target/${{ matrix.config.target }}/release/${{ matrix.config.artifact_name }} README.md ${{ matrix.config.directory }}/
+          tar -zcf ${{ matrix.config.zip_file }} ${{ matrix.config.directory }}
+      - name: Zip release archive
+        if: runner.os == 'Windows' || runner.os == 'macOS'
+        run: |
+          mkdir -p ${{ matrix.config.directory }}
+          cp target/${{ matrix.config.target }}/release/${{ matrix.config.artifact_name }} README.md ${{ matrix.config.directory }}/
+          7z a -tzip ${{ matrix.config.zip_file }} ${{ matrix.config.directory }}
+      - name: Upload binaries to release
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: ${{ matrix.config.zip_file }}
+          asset_name: ${{ matrix.config.asset_name }}
+          tag: ${{ github.ref }}
