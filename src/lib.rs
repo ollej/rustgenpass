@@ -81,9 +81,20 @@ fn b64_md5<S: AsRef<str>>(hash: S) -> String {
         .collect()
 }
 
-pub fn generate<S: AsRef<str>>(password: S, domain: S, length: u8, hash_rounds: u8) -> String {
+pub fn generate<S: AsRef<str>>(
+    password: S,
+    domain: S,
+    secret: Option<String>,
+    length: u8,
+    hash_rounds: u8,
+) -> String {
     let length = length as usize;
-    let mut hash: String = format!("{}:{}", password.as_ref(), domain.as_ref());
+    let mut hash: String = format!(
+        "{}{}:{}",
+        password.as_ref(),
+        secret.unwrap_or("".to_string()),
+        domain.as_ref()
+    );
 
     let mut i = 0;
     while i < hash_rounds || !strong_enough(&hash[..length]) {
@@ -100,6 +111,10 @@ pub struct Cli {
     /// Master password, if not given, reads from stdin
     #[clap(short, long, value_parser)]
     pub password: Option<String>,
+
+    /// Secret added to the master password
+    #[clap(short, long, value_parser)]
+    pub secret: Option<String>,
 
     /// Domain / URL
     #[clap(short, long, value_parser)]
