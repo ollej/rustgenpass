@@ -81,9 +81,8 @@ fn b64_md5<S: AsRef<str>>(hash: S) -> String {
         .collect()
 }
 
-pub fn generate<S: AsRef<str>>(password: S, domain: S, length: u8) -> String {
+pub fn generate<S: AsRef<str>>(password: S, domain: S, length: u8, hash_rounds: u8) -> String {
     let length = length as usize;
-    let hash_rounds = 10;
     let mut hash: String = format!("{}:{}", password.as_ref(), domain.as_ref());
 
     let mut i = 0;
