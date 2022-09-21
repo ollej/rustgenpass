@@ -1,3 +1,15 @@
+//! An implementation in Rust of the [SuperGenPass](https://chriszarate.github.io/supergenpass/) utility.
+//!
+//! Hash a master password into unique, complex passwords specific for each
+//! website.
+//!
+//! ```rust
+//! use rustgenpass::{ get_hostname, generate };
+//! let domain = get_hostname("example.com", false, false).unwrap();
+//! let generated_password = generate("masterpassword", &domain, None, 10, 10);
+//! assert_eq!("jHMOHn7bRs", generated_password);
+//! ```
+
 #[macro_use]
 extern crate lazy_static;
 use clap::Parser;
@@ -17,6 +29,20 @@ lazy_static! {
 }
 
 /// Isolate the domain name of a URL.
+///
+/// # Arguments
+///
+/// * `domain` - Domain / URL to get base hostname for
+/// * `passthrough` -  Passthrough domain unmodified to hash function
+/// * `keep_subdomains` - Don't remove subdomains from domain
+///
+/// # Examples
+///
+/// ```
+/// use rustgenpass::get_hostname;
+/// let hostname = get_hostname("https://user:pass@www.example.com:4711/path/file.html", false, false);
+/// assert_eq!("example.com", hostname.unwrap());
+/// ```
 pub fn get_hostname<S: Into<String>>(
     domain: S,
     passthrough: bool,
@@ -87,6 +113,22 @@ fn b64_md5<S: AsRef<str>>(hash: S) -> String {
 }
 
 /// Generate a hashed password with given options
+///
+/// # Arguments
+///
+/// * `password` - Master password to generate hashed password from
+/// * `domain` - Domain / URL to generate password for
+/// * `secret` - Secret added to the master password
+/// * `length` - Length of generated password, min: 4, max: 24
+/// * `hash_rounds` - Number of hash rounds
+///
+/// # Examples
+///
+/// ```
+/// use rustgenpass::generate;
+/// let generated_password = generate("masterpassword", "example.com", Some("secret".to_string()), 10, 10);
+/// assert_eq!("fqProIJ38f", generated_password);
+/// ```
 pub fn generate<S: AsRef<str>>(
     password: S,
     domain: S,
@@ -124,11 +166,11 @@ pub struct Cli {
     #[clap(short, long, value_parser)]
     pub secret: Option<String>,
 
-    /// Domain / URL
+    /// Domain / URL to generate password for
     #[clap(short, long, value_parser)]
     pub domain: String,
 
-    /// Length of password, min: 4, max: 24
+    /// Length of generated password, min: 4, max: 24
     #[clap(short, long, default_value_t = 10, value_parser = clap::value_parser!(u8).range(4..=24))]
     pub length: u8,
 
@@ -136,7 +178,7 @@ pub struct Cli {
     #[clap(short, long, default_value_t = 10)]
     pub rounds: u8,
 
-    /// Don't remove subdomain from domain
+    /// Don't remove subdomains from domain
     #[clap(short, long, action)]
     pub keep_subdomains: bool,
 
