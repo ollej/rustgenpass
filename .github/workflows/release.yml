@@ -40,14 +40,20 @@ jobs:
         with:
           command: build
           args: --release --locked --all-targets
-      - name: Zip release archive
+      - name: Zip Linux release archive
         if: runner.os == 'Linux'
         run: |
           mkdir ${{ matrix.config.directory }}
           cp target/release/${{ matrix.config.artifact_name }} README.md LICENSE ${{ matrix.config.directory }}
           tar -zcf ${{ matrix.config.zip_file }} ${{ matrix.config.directory }}
-      - name: Zip release archive
-        if: runner.os == 'Windows' || runner.os == 'macOS'
+      - name: Zip Windows release archive
+        if: runner.os == 'Windows'
+        run: |
+          mkdir -p ${{ matrix.config.directory }}
+          cp target/release/${{ matrix.config.artifact_name }},README.md,LICENSE ${{ matrix.config.directory }}
+          7z a -tzip ${{ matrix.config.zip_file }} ${{ matrix.config.directory }}
+      - name: Zip MacOS release archive
+        if: runner.os == 'macOS'
         run: |
           mkdir -p ${{ matrix.config.directory }}
           cp target/release/${{ matrix.config.artifact_name }} README.md LICENSE ${{ matrix.config.directory }}
