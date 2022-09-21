@@ -16,6 +16,7 @@ lazy_static! {
         .collect();
 }
 
+/// Isolate the domain name of a URL.
 pub fn get_hostname<S: Into<String>>(
     domain: S,
     passthrough: bool,
@@ -29,9 +30,13 @@ pub fn get_hostname<S: Into<String>>(
         Some(hostname) => hostname.get(1).unwrap().as_str(),
         None => return Err(format!("URL is invalid: {}", domain)),
     };
+
+    // If the hostname is an IP address, no further processing can be done.
     if RE_IP_ADDRESS.is_match(hostname) || keep_subdomains {
         return Ok(hostname.to_string());
     }
+
+    // Return the hostname with subdomains removed, if requested.
     Ok(remove_subdomain(hostname.to_string()))
 }
 
@@ -59,7 +64,7 @@ fn remove_subdomain<S: Into<String>>(hostname: S) -> String {
     parts.as_slice()[parts.len() - 2..].join(".")
 }
 
-fn strong_enough<S: AsRef<str>>(password: S) -> bool {
+fn validate_password<S: AsRef<str>>(password: S) -> bool {
     RE_STARTS_WITH_LOWERCASE_LETTER.is_match(password.as_ref())
         && RE_CONATINS_NUMERAL.is_match(password.as_ref())
         && RE_CONTAINS_UPPERCASE_LETTER.is_match(password.as_ref())
@@ -81,6 +86,7 @@ fn b64_md5<S: AsRef<str>>(hash: S) -> String {
         .collect()
 }
 
+/// Generate a hashed password with given options
 pub fn generate<S: AsRef<str>>(
     password: S,
     domain: S,
@@ -96,8 +102,10 @@ pub fn generate<S: AsRef<str>>(
         domain.as_ref()
     );
 
+    // Hash the input for the requested number of rounds, then continue hashing
+    // until the password policy is satisfied.
     let mut i = 0;
-    while i < hash_rounds || !strong_enough(&hash[..length]) {
+    while i < hash_rounds || !validate_password(&hash[..length]) {
         hash = b64_md5(hash);
         i += 1;
     }
@@ -138,26 +146,26 @@ pub struct Cli {
 }
 
 #[cfg(test)]
-mod strong_enough {
+mod test_validate_password {
     use super::*;
 
     #[test]
     fn validates_minimal_example() {
-        assert!(strong_enough("aB9"));
+        assert!(validate_password("aB9"));
     }
 
     #[test]
     fn requires_an_uppercase_letter() {
-        assert_eq!(false, strong_enough("a"));
+        assert_eq!(false, validate_password("a"));
     }
 
     #[test]
     fn requires_password_to_start_with_lowercase_letter() {
-        assert_eq!(false, strong_enough("A"));
+        assert_eq!(false, validate_password("A"));
     }
 
     #[test]
     fn requires_a_number() {
-        assert_eq!(false, strong_enough("aA"));
+        assert_eq!(false, validate_password("aA"));
     }
 }

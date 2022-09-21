@@ -4,8 +4,8 @@ use rustgenpass::{generate, get_hostname, Cli};
 fn main() -> Result<(), String> {
     /* TODO:
      * Add tests
-     * Support secret
      * Support sha512 hashing
+     * Builder interface for library
      * Write documentation
      */
     let cli = Cli::parse();
