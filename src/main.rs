@@ -64,7 +64,7 @@ fn generate<S: AsRef<str>>(password: S, domain: S) -> String {
 #[derive(Parser)]
 #[clap(author, version, about, long_about = None)]
 struct Cli {
-    /// Master password
+    /// Master password, if not given, reads from stdin
     #[clap(short, long, value_parser)]
     password: Option<String>,
 
@@ -79,19 +79,28 @@ struct Cli {
     /// Number of hash rounds
     #[clap(short, long, default_value_t = 10)]
     rounds: u8,
+
+    /// Don't remove subdomain from domain
+    #[clap(short, long, action)]
+    keep_subdomains: bool,
+
+    /// Passthrough domain unmodified to hash function
+    #[clap(short = 'P', long, action)]
+    passthrough: bool,
 }
 
 fn main() {
     /* TODO:
+     * Add tests
      * Implement get_top_domain
-     * Default to read password secretly from stdin
      * Support length
      * Support hash_rounds
+     * Support not stripping domain
      */
     let cli = Cli::parse();
-    let generated_password = generate(
-        cli.password.unwrap_or("".to_string()),
-        cli.domain.unwrap_or("".to_string()),
-    );
+    let password = cli.password.unwrap_or_else(|| {
+        rpassword::prompt_password("Enter master password: ").expect("You must enter a password.")
+    });
+    let generated_password = generate(password, cli.domain.unwrap_or("".to_string()));
     println!("{}", generated_password);
 }

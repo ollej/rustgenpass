@@ -248,6 +248,16 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a3f87b73ce11b1619a3c6332f45341e0047173771e8b8b73f87bfeefb7b56244"
 
 [[package]]
+name = "rpassword"
+version = "7.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "26b763cb66df1c928432cc35053f8bd4cec3335d8559fc16010017d16b3c1680"
+dependencies = [
+ "libc",
+ "winapi",
+]
+
+[[package]]
 name = "rustgenpass"
 version = "0.1.0"
 dependencies = [
@@ -256,6 +266,7 @@ dependencies = [
  "lazy_static",
  "md-5",
  "regex",
+ "rpassword",
 ]
 
 [[package]]
