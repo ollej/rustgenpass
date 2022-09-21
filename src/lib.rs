@@ -81,8 +81,8 @@ fn b64_md5<S: AsRef<str>>(hash: S) -> String {
         .collect()
 }
 
-pub fn generate<S: AsRef<str>>(password: S, domain: S) -> String {
-    let length = 10;
+pub fn generate<S: AsRef<str>>(password: S, domain: S, length: u8) -> String {
+    let length = length as usize;
     let hash_rounds = 10;
     let mut hash: String = format!("{}:{}", password.as_ref(), domain.as_ref());
 
@@ -106,8 +106,8 @@ pub struct Cli {
     #[clap(short, long, value_parser)]
     pub domain: String,
 
-    /// Length of password
-    #[clap(short, long, default_value_t = 10)]
+    /// Length of password, min: 4, max: 24
+    #[clap(short, long, default_value_t = 10, value_parser = clap::value_parser!(u8).range(4..=24))]
     pub length: u8,
 
     /// Number of hash rounds

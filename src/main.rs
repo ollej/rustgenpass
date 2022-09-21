@@ -17,7 +17,7 @@ fn main() -> Result<(), String> {
         rpassword::prompt_password("Enter master password: ").expect("You must enter a password.")
     });
     let domain = get_hostname(cli.domain, cli.keep_subdomains, cli.passthrough)?;
-    let generated_password = generate(password, domain);
+    let generated_password = generate(password, domain, cli.length);
     println!("{}", generated_password);
     Ok(())
 }
