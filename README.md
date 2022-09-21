@@ -12,22 +12,23 @@ Usage
 -----
 
 ```
-rustgenpass 0.1.0
+rustgenpass 0.2.0
 Generate a hashed password similar to SuperGenPass.
 
 USAGE:
     rgp [OPTIONS] --domain <DOMAIN>
 
 OPTIONS:
-    -d, --domain <DOMAIN>        Domain / URL
+    -d, --domain <DOMAIN>        Domain / URL to generate password for
     -h, --help                   Print help information
+    -H, --hash <HASH>            Hashing method to use [default: md5] [possible values: md5, sha512]
     -k, --keep-subdomains        Don't remove subdomains from domain
-    -l, --length <LENGTH>        Length of password, min: 4, max: 24 [default: 10]
+    -l, --length <LENGTH>        Length of generated password, min: 4, max: 24 [default: 10]
     -p, --password <PASSWORD>    Master password, if not given, reads from stdin
     -P, --passthrough            Passthrough domain unmodified to hash function
     -r, --rounds <ROUNDS>        Number of hash rounds [default: 10]
     -s, --secret <SECRET>        Secret added to the master password
-    -V, --version                Print version information
+    -V, --version                Print version informationrustgenpass 0.2.0
 ```
 
 License

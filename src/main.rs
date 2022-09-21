@@ -2,10 +2,6 @@ use clap::Parser;
 use rustgenpass::{generate_with_config, get_hostname, Cli};
 
 fn main() -> Result<(), String> {
-    /* TODO:
-     * Support sha512 hashing
-     * Builder interface for library
-     */
     let cli = Cli::parse();
     let password = cli.password.unwrap_or_else(|| {
         rpassword::prompt_password("Enter master password: ").expect("You must enter a password.")

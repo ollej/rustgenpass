@@ -131,21 +131,21 @@ fn validate_password<S: AsRef<str>>(password: S) -> bool {
         && RE_CONTAINS_UPPERCASE_LETTER.is_match(password.as_ref())
 }
 
-fn b64_md5<S: AsRef<str>>(hash: S) -> String {
+fn base64_md5<S: AsRef<str>>(hash: S) -> String {
     let mut hasher = Md5::new();
     hasher.update(hash.as_ref());
     let digest = hasher.finalize();
-    base64encode(&digest)
+    base64_encode(&digest)
 }
 
-fn b64_sha512<S: AsRef<str>>(hash: S) -> String {
+fn base64_sha512<S: AsRef<str>>(hash: S) -> String {
     let mut hasher = Sha512::new();
     hasher.update(hash.as_ref());
     let digest = hasher.finalize();
-    base64encode(&digest)
+    base64_encode(&digest)
 }
 
-fn base64encode(digest: &[u8]) -> String {
+fn base64_encode(digest: &[u8]) -> String {
     let b64_md5 = base64::encode(digest);
     b64_md5
         .chars()
@@ -215,8 +215,8 @@ pub fn generate_with_config<S: AsRef<str>>(
     let mut i = 0;
     while i < hash_rounds || !validate_password(&hash[..length]) {
         hash = match hash_algorithm {
-            HashAlgorithm::MD5 => b64_md5(hash),
-            HashAlgorithm::SHA512 => b64_sha512(hash),
+            HashAlgorithm::MD5 => base64_md5(hash),
+            HashAlgorithm::SHA512 => base64_sha512(hash),
         };
         i += 1;
     }
