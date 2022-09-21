@@ -3,11 +3,37 @@
 //! Hash a master password into unique, complex passwords specific for each
 //! website.
 //!
-//! ```rust
-//! use rustgenpass::{ get_hostname, generate };
-//! let domain = get_hostname("example.com", false, false).unwrap();
-//! let generated_password = generate("masterpassword", &domain, None, 10, 10);
+//! # Examples
+//!
+//! ## With defaults
+//! ```
+//! use rustgenpass::generate;
+//! let generated_password = generate("masterpassword", "example.com");
 //! assert_eq!("jHMOHn7bRs", generated_password);
+//! ```
+//!
+//! ## With configuration matching defaults
+//! ```rust
+//! use rustgenpass::{ get_hostname, generate_with_config };
+//! let domain = get_hostname("example.com", false, false).unwrap();
+//! let generated_password = generate_with_config("masterpassword", "example.com", None, 10, 10);
+//! assert_eq!("jHMOHn7bRs", generated_password);
+//! ```
+//!
+//! ## With configuration matching defaults
+//! ```rust
+//! use rustgenpass::{ get_hostname, generate_with_config };
+//! let domain = get_hostname("example.com", false, false).unwrap();
+//! let generated_password = generate_with_config("masterpassword", "example.com", Some("secret".to_string()), 24, 50);
+//! assert_eq!("izHhm22SMfZeg8Q3t2BrZgAA", generated_password);
+//! ```
+//!
+//! ## Full example with hostname isolation from URL
+//! ```rust
+//! use rustgenpass::{ get_hostname, generate_with_config };
+//! let domain = get_hostname("https://www.example.com/foo/bar.html", false, false).unwrap();
+//! let generated_password = generate_with_config("masterpassword", &domain, Some("secret".to_string()), 24, 50);
+//! assert_eq!("izHhm22SMfZeg8Q3t2BrZgAA", generated_password);
 //! ```
 
 #[macro_use]
@@ -112,7 +138,25 @@ fn b64_md5<S: AsRef<str>>(hash: S) -> String {
         .collect()
 }
 
-/// Generate a hashed password with given options
+/// Generate a hashed password with default options.
+///
+/// # Arguments
+///
+/// * `password` - Master password to generate hashed password from
+/// * `domain` - Domain / URL to generate password for
+///
+/// # Examples
+///
+/// ```
+/// use rustgenpass::generate;
+/// let generated_password = generate("masterpassword", "example.com");
+/// assert_eq!("jHMOHn7bRs", generated_password);
+/// ```
+pub fn generate<S: AsRef<str>>(password: S, domain: S) -> String {
+    generate_with_config(password, domain, None, 10, 10)
+}
+
+/// Generate a hashed password with given options.
 ///
 /// # Arguments
 ///
@@ -125,11 +169,11 @@ fn b64_md5<S: AsRef<str>>(hash: S) -> String {
 /// # Examples
 ///
 /// ```
-/// use rustgenpass::generate;
-/// let generated_password = generate("masterpassword", "example.com", Some("secret".to_string()), 10, 10);
+/// use rustgenpass::generate_with_config;
+/// let generated_password = generate_with_config("masterpassword", "example.com", Some("secret".to_string()), 10, 10);
 /// assert_eq!("fqProIJ38f", generated_password);
 /// ```
-pub fn generate<S: AsRef<str>>(
+pub fn generate_with_config<S: AsRef<str>>(
     password: S,
     domain: S,
     secret: Option<String>,
@@ -157,6 +201,7 @@ pub fn generate<S: AsRef<str>>(
 
 #[derive(Parser)]
 #[clap(author, version, about, long_about = None)]
+/// Options parsed from command line used by the binary
 pub struct Cli {
     /// Master password, if not given, reads from stdin
     #[clap(short, long, value_parser)]

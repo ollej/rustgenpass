@@ -1,5 +1,5 @@
 use clap::Parser;
-use rustgenpass::{generate, get_hostname, Cli};
+use rustgenpass::{generate_with_config, get_hostname, Cli};
 
 fn main() -> Result<(), String> {
     /* TODO:
@@ -13,7 +13,8 @@ fn main() -> Result<(), String> {
         rpassword::prompt_password("Enter master password: ").expect("You must enter a password.")
     });
     let domain = get_hostname(cli.domain, cli.keep_subdomains, cli.passthrough)?;
-    let generated_password = generate(password, domain, cli.secret, cli.length, cli.rounds);
+    let generated_password =
+        generate_with_config(password, domain, cli.secret, cli.length, cli.rounds);
     println!("{}", generated_password);
     Ok(())
 }
