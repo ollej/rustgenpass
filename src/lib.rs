@@ -14,33 +14,42 @@
 //!
 //! ## With configuration matching defaults
 //! ```rust
-//! use rustgenpass::{ get_hostname, generate_with_config };
+//! use rustgenpass::{ get_hostname, generate_with_config, HashAlgorithm };
 //! let domain = get_hostname("example.com", false, false).unwrap();
-//! let generated_password = generate_with_config("masterpassword", "example.com", None, 10, 10);
+//! let generated_password = generate_with_config("masterpassword", "example.com", None, 10, 10, HashAlgorithm::MD5);
 //! assert_eq!("jHMOHn7bRs", generated_password);
 //! ```
 //!
 //! ## With configuration matching defaults
 //! ```rust
-//! use rustgenpass::{ get_hostname, generate_with_config };
+//! use rustgenpass::{ get_hostname, generate_with_config, HashAlgorithm };
 //! let domain = get_hostname("example.com", false, false).unwrap();
-//! let generated_password = generate_with_config("masterpassword", "example.com", Some("secret".to_string()), 24, 50);
+//! let generated_password = generate_with_config("masterpassword", "example.com", Some("secret".to_string()), 24, 50, HashAlgorithm::MD5);
 //! assert_eq!("izHhm22SMfZeg8Q3t2BrZgAA", generated_password);
 //! ```
 //!
 //! ## Full example with hostname isolation from URL
 //! ```rust
-//! use rustgenpass::{ get_hostname, generate_with_config };
+//! use rustgenpass::{ get_hostname, generate_with_config, HashAlgorithm };
 //! let domain = get_hostname("https://www.example.com/foo/bar.html", false, false).unwrap();
-//! let generated_password = generate_with_config("masterpassword", &domain, Some("secret".to_string()), 24, 50);
+//! let generated_password = generate_with_config("masterpassword", &domain, Some("secret".to_string()), 24, 50, HashAlgorithm::MD5);
 //! assert_eq!("izHhm22SMfZeg8Q3t2BrZgAA", generated_password);
+//! ```
+//!
+//! ## Full example using SHA512 hashing
+//! ```rust
+//! use rustgenpass::{ get_hostname, generate_with_config, HashAlgorithm };
+//! let domain = get_hostname("https://www.example.com/foo/bar.html", false, false).unwrap();
+//! let generated_password = generate_with_config("masterpassword", &domain, Some("secret".to_string()), 24, 50, HashAlgorithm::SHA512);
+//! assert_eq!("awqhRUhYQSj48FIp678e84LO", generated_password);
 //! ```
 
 #[macro_use]
 extern crate lazy_static;
 use clap::Parser;
-use md5::{Digest, Md5};
+use md5::Md5;
 use regex::Regex;
+use sha2::{Digest, Sha512};
 
 lazy_static! {
     static ref RE_STARTS_WITH_LOWERCASE_LETTER: Regex = Regex::new(r"^[a-z]").unwrap();
@@ -126,6 +135,17 @@ fn b64_md5<S: AsRef<str>>(hash: S) -> String {
     let mut hasher = Md5::new();
     hasher.update(hash.as_ref());
     let digest = hasher.finalize();
+    base64encode(&digest)
+}
+
+fn b64_sha512<S: AsRef<str>>(hash: S) -> String {
+    let mut hasher = Sha512::new();
+    hasher.update(hash.as_ref());
+    let digest = hasher.finalize();
+    base64encode(&digest)
+}
+
+fn base64encode(digest: &[u8]) -> String {
     let b64_md5 = base64::encode(digest);
     b64_md5
         .chars()
@@ -153,7 +173,7 @@ fn b64_md5<S: AsRef<str>>(hash: S) -> String {
 /// assert_eq!("jHMOHn7bRs", generated_password);
 /// ```
 pub fn generate<S: AsRef<str>>(password: S, domain: S) -> String {
-    generate_with_config(password, domain, None, 10, 10)
+    generate_with_config(password, domain, None, 10, 10, HashAlgorithm::MD5)
 }
 
 /// Generate a hashed password with given options.
@@ -165,12 +185,13 @@ pub fn generate<S: AsRef<str>>(password: S, domain: S) -> String {
 /// * `secret` - Secret added to the master password
 /// * `length` - Length of generated password, min: 4, max: 24
 /// * `hash_rounds` - Number of hash rounds
+/// * `hash_algorithm` - Hashing algorithm to use
 ///
 /// # Examples
 ///
 /// ```
-/// use rustgenpass::generate_with_config;
-/// let generated_password = generate_with_config("masterpassword", "example.com", Some("secret".to_string()), 10, 10);
+/// use rustgenpass::{generate_with_config, HashAlgorithm};
+/// let generated_password = generate_with_config("masterpassword", "example.com", Some("secret".to_string()), 10, 10, HashAlgorithm::MD5);
 /// assert_eq!("fqProIJ38f", generated_password);
 /// ```
 pub fn generate_with_config<S: AsRef<str>>(
@@ -179,6 +200,7 @@ pub fn generate_with_config<S: AsRef<str>>(
     secret: Option<String>,
     length: u8,
     hash_rounds: u8,
+    hash_algorithm: HashAlgorithm,
 ) -> String {
     let length = length as usize;
     let mut hash: String = format!(
@@ -192,11 +214,20 @@ pub fn generate_with_config<S: AsRef<str>>(
     // until the password policy is satisfied.
     let mut i = 0;
     while i < hash_rounds || !validate_password(&hash[..length]) {
-        hash = b64_md5(hash);
+        hash = match hash_algorithm {
+            HashAlgorithm::MD5 => b64_md5(hash),
+            HashAlgorithm::SHA512 => b64_sha512(hash),
+        };
         i += 1;
     }
 
     hash[..length].to_string()
+}
+
+#[derive(Clone, clap::ArgEnum)]
+pub enum HashAlgorithm {
+    MD5,
+    SHA512,
 }
 
 #[derive(Parser)]
@@ -230,6 +261,10 @@ pub struct Cli {
     /// Passthrough domain unmodified to hash function
     #[clap(short = 'P', long, action)]
     pub passthrough: bool,
+
+    /// Hashing method to use
+    #[clap(short = 'H', long, arg_enum, default_value_t = HashAlgorithm::MD5)]
+    pub hash: HashAlgorithm,
 }
 
 #[cfg(test)]
