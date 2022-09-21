@@ -1,6 +1,8 @@
 RustGenPass
 ===========
 
+[![Cross-compile](https://github.com/ollej/rustgenpass/actions/workflows/crosscompile.yml/badge.svg)](https://github.com/ollej/rustgenpass/actions/workflows/crosscompile.yml)
+
 An implementation in Rust of the [SuperGenPass](https://chriszarate.github.io/supergenpass/) utility.
 
 Hash a master password into unique, complex passwords specific for each
