@@ -5,25 +5,23 @@
 //!
 //! # Examples
 //!
-//! ## With defaults
+//! ## Use default to parse domain from URL and strip subdomains
 //! ```
-//! use rustgenpass::generate;
-//! let generated_password = generate("masterpassword", "example.com");
+//! use rustgenpass::generate_with_url;
+//! let generated_password = generate_with_url("masterpassword", "http://www.example.com/foo/bar.html");
 //! assert_eq!("jHMOHn7bRs", generated_password);
 //! ```
 //!
 //! ## With configuration matching defaults
 //! ```rust
-//! use rustgenpass::{ get_hostname, generate_with_config, HashAlgorithm };
-//! let domain = get_hostname("example.com", false, false).unwrap();
+//! use rustgenpass::{ generate_with_config, HashAlgorithm };
 //! let generated_password = generate_with_config("masterpassword", "example.com", None, 10, 10, HashAlgorithm::MD5);
 //! assert_eq!("jHMOHn7bRs", generated_password);
 //! ```
 //!
 //! ## With configuration matching defaults
 //! ```rust
-//! use rustgenpass::{ get_hostname, generate_with_config, HashAlgorithm };
-//! let domain = get_hostname("example.com", false, false).unwrap();
+//! use rustgenpass::{ generate_with_config, HashAlgorithm };
 //! let generated_password = generate_with_config("masterpassword", "example.com", Some("secret".to_string()), 24, 50, HashAlgorithm::MD5);
 //! assert_eq!("izHhm22SMfZeg8Q3t2BrZgAA", generated_password);
 //! ```
@@ -31,7 +29,7 @@
 //! ## Full example with hostname isolation from URL
 //! ```rust
 //! use rustgenpass::{ get_hostname, generate_with_config, HashAlgorithm };
-//! let domain = get_hostname("https://www.example.com/foo/bar.html", false, false).unwrap();
+//! let domain = get_hostname("https://www.example.com/foo/bar.html").unwrap();
 //! let generated_password = generate_with_config("masterpassword", &domain, Some("secret".to_string()), 24, 50, HashAlgorithm::MD5);
 //! assert_eq!("izHhm22SMfZeg8Q3t2BrZgAA", generated_password);
 //! ```
@@ -39,9 +37,17 @@
 //! ## Full example using SHA512 hashing
 //! ```rust
 //! use rustgenpass::{ get_hostname, generate_with_config, HashAlgorithm };
-//! let domain = get_hostname("https://www.example.com/foo/bar.html", false, false).unwrap();
+//! let domain = get_hostname("https://www.example.com/foo/bar.html").unwrap();
 //! let generated_password = generate_with_config("masterpassword", &domain, Some("secret".to_string()), 24, 50, HashAlgorithm::SHA512);
 //! assert_eq!("awqhRUhYQSj48FIp678e84LO", generated_password);
+//! ```
+//!
+//! ## Full example with passthrough of URL
+//! ```rust
+//! use rustgenpass::{ get_hostname_with_config, generate_with_config, HashAlgorithm };
+//! let domain = get_hostname_with_config("https://www.example.com/foo/bar.html", true, false).unwrap();
+//! let generated_password = generate_with_config("masterpassword", &domain, None, 24, 50, HashAlgorithm::MD5);
+//! assert_eq!("ufLehPcQ8FgvRZX8ZHOg5wAA", generated_password);
 //! ```
 
 #[macro_use]
@@ -63,6 +69,25 @@ lazy_static! {
         .collect();
 }
 
+/// Generate a hashed password from URL with default options.
+///
+/// # Arguments
+///
+/// * `password` - Master password to generate hashed password from
+/// * `url` - URL to generate password for, will be stripped to domain
+///
+/// # Examples
+///
+/// ```
+/// use rustgenpass::generate_with_url;
+/// let generated_password = generate_with_url("masterpassword", "https://www.example.com/foo/bar.html");
+/// assert_eq!("jHMOHn7bRs", generated_password);
+/// ```
+pub fn generate_with_url<S: Into<String>>(password: S, url: S) -> String {
+    let domain = get_hostname(url).expect("Couldn't parse URL");
+    generate_with_config(password.into(), domain, None, 10, 10, HashAlgorithm::MD5)
+}
+
 /// Generate a hashed password with default options.
 ///
 /// # Arguments
@@ -77,7 +102,7 @@ lazy_static! {
 /// let generated_password = generate("masterpassword", "example.com");
 /// assert_eq!("jHMOHn7bRs", generated_password);
 /// ```
-pub fn generate<S: AsRef<str>>(password: S, domain: S) -> String {
+pub fn generate<S: Into<String>>(password: S, domain: S) -> String {
     generate_with_config(password, domain, None, 10, 10, HashAlgorithm::MD5)
 }
 
@@ -99,7 +124,7 @@ pub fn generate<S: AsRef<str>>(password: S, domain: S) -> String {
 /// let generated_password = generate_with_config("masterpassword", "example.com", Some("secret".to_string()), 10, 10, HashAlgorithm::MD5);
 /// assert_eq!("fqProIJ38f", generated_password);
 /// ```
-pub fn generate_with_config<S: AsRef<str>>(
+pub fn generate_with_config<S: Into<String>>(
     password: S,
     domain: S,
     secret: Option<String>,
@@ -110,9 +135,9 @@ pub fn generate_with_config<S: AsRef<str>>(
     let length = length as usize;
     let mut hash: String = format!(
         "{}{}:{}",
-        password.as_ref(),
+        password.into(),
         secret.unwrap_or("".to_string()),
-        domain.as_ref()
+        domain.into()
     );
 
     // Hash the input for the requested number of rounds, then continue hashing
@@ -129,6 +154,23 @@ pub fn generate_with_config<S: AsRef<str>>(
     hash[..length].to_string()
 }
 
+/// Isolate the domain name of a URL with default config.
+///
+/// # Arguments
+///
+/// * `domain` - Domain / URL to get base hostname for
+///
+/// # Examples
+///
+/// ```
+/// use rustgenpass::get_hostname;
+/// let hostname = get_hostname("https://user:pass@www.example.com:4711/path/file.html");
+/// assert_eq!("example.com", hostname.unwrap());
+/// ```
+pub fn get_hostname<S: Into<String>>(domain: S) -> Result<String, String> {
+    get_hostname_with_config(domain, false, false)
+}
+
 /// Isolate the domain name of a URL.
 ///
 /// # Arguments
@@ -140,11 +182,11 @@ pub fn generate_with_config<S: AsRef<str>>(
 /// # Examples
 ///
 /// ```
-/// use rustgenpass::get_hostname;
-/// let hostname = get_hostname("https://user:pass@www.example.com:4711/path/file.html", false, false);
+/// use rustgenpass::get_hostname_with_config;
+/// let hostname = get_hostname_with_config("https://user:pass@www.example.com:4711/path/file.html", false, false);
 /// assert_eq!("example.com", hostname.unwrap());
 /// ```
-pub fn get_hostname<S: Into<String>>(
+pub fn get_hostname_with_config<S: Into<String>>(
     domain: S,
     passthrough: bool,
     keep_subdomains: bool,
@@ -191,22 +233,23 @@ fn remove_subdomain<S: Into<String>>(hostname: S) -> String {
     parts.as_slice()[parts.len() - 2..].join(".")
 }
 
-fn validate_password<S: AsRef<str>>(password: S) -> bool {
-    RE_STARTS_WITH_LOWERCASE_LETTER.is_match(password.as_ref())
-        && RE_CONATINS_NUMERAL.is_match(password.as_ref())
-        && RE_CONTAINS_UPPERCASE_LETTER.is_match(password.as_ref())
+fn validate_password<S: Into<String>>(password: S) -> bool {
+    let password = password.into();
+    RE_STARTS_WITH_LOWERCASE_LETTER.is_match(&password)
+        && RE_CONATINS_NUMERAL.is_match(&password)
+        && RE_CONTAINS_UPPERCASE_LETTER.is_match(&password)
 }
 
-fn base64_md5<S: AsRef<str>>(hash: S) -> String {
+fn base64_md5<S: Into<String>>(hash: S) -> String {
     let mut hasher = Md5::new();
-    hasher.update(hash.as_ref());
+    hasher.update(hash.into());
     let digest = hasher.finalize();
     base64_encode(&digest)
 }
 
-fn base64_sha512<S: AsRef<str>>(hash: S) -> String {
+fn base64_sha512<S: Into<String>>(hash: S) -> String {
     let mut hasher = Sha512::new();
-    hasher.update(hash.as_ref());
+    hasher.update(hash.into());
     let digest = hasher.finalize();
     base64_encode(&digest)
 }

@@ -1,4 +1,28 @@
 #[cfg(test)]
+mod test_generate_with_url {
+    use rustgenpass::{generate_with_config, generate_with_url, HashAlgorithm};
+
+    #[test]
+    fn generate_with_url_works_like_generate_with_config() {
+        assert_eq!(
+            "jHMOHn7bRs",
+            generate_with_url("masterpassword", "https://www.example.com/foo/bar.html")
+        );
+        assert_eq!(
+            generate_with_config(
+                "masterpassword",
+                "example.com",
+                None,
+                10,
+                10,
+                HashAlgorithm::MD5
+            ),
+            generate_with_url("masterpassword", "https://www.example.com/foo/bar.html")
+        );
+    }
+}
+
+#[cfg(test)]
 mod test_generate {
     use rustgenpass::{generate, generate_with_config, HashAlgorithm};
 
