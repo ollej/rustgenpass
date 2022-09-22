@@ -63,6 +63,72 @@ lazy_static! {
         .collect();
 }
 
+/// Generate a hashed password with default options.
+///
+/// # Arguments
+///
+/// * `password` - Master password to generate hashed password from
+/// * `domain` - Domain / URL to generate password for
+///
+/// # Examples
+///
+/// ```
+/// use rustgenpass::generate;
+/// let generated_password = generate("masterpassword", "example.com");
+/// assert_eq!("jHMOHn7bRs", generated_password);
+/// ```
+pub fn generate<S: AsRef<str>>(password: S, domain: S) -> String {
+    generate_with_config(password, domain, None, 10, 10, HashAlgorithm::MD5)
+}
+
+/// Generate a hashed password with given options.
+///
+/// # Arguments
+///
+/// * `password` - Master password to generate hashed password from
+/// * `domain` - Domain / URL to generate password for
+/// * `secret` - Secret added to the master password
+/// * `length` - Length of generated password, min: 4, max: 24
+/// * `hash_rounds` - Number of hash rounds
+/// * `hash_algorithm` - Hashing algorithm to use
+///
+/// # Examples
+///
+/// ```
+/// use rustgenpass::{generate_with_config, HashAlgorithm};
+/// let generated_password = generate_with_config("masterpassword", "example.com", Some("secret".to_string()), 10, 10, HashAlgorithm::MD5);
+/// assert_eq!("fqProIJ38f", generated_password);
+/// ```
+pub fn generate_with_config<S: AsRef<str>>(
+    password: S,
+    domain: S,
+    secret: Option<String>,
+    length: u8,
+    hash_rounds: u8,
+    hash_algorithm: HashAlgorithm,
+) -> String {
+    let length = length as usize;
+    let mut hash: String = format!(
+        "{}{}:{}",
+        password.as_ref(),
+        secret.unwrap_or("".to_string()),
+        domain.as_ref()
+    );
+
+    // Hash the input for the requested number of rounds, then continue hashing
+    // until the password policy is satisfied.
+    let mut i = 0;
+    while i < hash_rounds || !validate_password(&hash[..length]) {
+        hash = match hash_algorithm {
+            HashAlgorithm::MD5 => base64_md5(hash),
+            HashAlgorithm::SHA512 => base64_sha512(hash),
+        };
+        i += 1;
+    }
+
+    hash[..length].to_string()
+}
+
 /// Isolate the domain name of a URL.
 ///
 /// # Arguments
@@ -156,72 +222,6 @@ fn base64_encode(digest: &[u8]) -> String {
             _ => x,
         })
         .collect()
-}
-
-/// Generate a hashed password with default options.
-///
-/// # Arguments
-///
-/// * `password` - Master password to generate hashed password from
-/// * `domain` - Domain / URL to generate password for
-///
-/// # Examples
-///
-/// ```
-/// use rustgenpass::generate;
-/// let generated_password = generate("masterpassword", "example.com");
-/// assert_eq!("jHMOHn7bRs", generated_password);
-/// ```
-pub fn generate<S: AsRef<str>>(password: S, domain: S) -> String {
-    generate_with_config(password, domain, None, 10, 10, HashAlgorithm::MD5)
-}
-
-/// Generate a hashed password with given options.
-///
-/// # Arguments
-///
-/// * `password` - Master password to generate hashed password from
-/// * `domain` - Domain / URL to generate password for
-/// * `secret` - Secret added to the master password
-/// * `length` - Length of generated password, min: 4, max: 24
-/// * `hash_rounds` - Number of hash rounds
-/// * `hash_algorithm` - Hashing algorithm to use
-///
-/// # Examples
-///
-/// ```
-/// use rustgenpass::{generate_with_config, HashAlgorithm};
-/// let generated_password = generate_with_config("masterpassword", "example.com", Some("secret".to_string()), 10, 10, HashAlgorithm::MD5);
-/// assert_eq!("fqProIJ38f", generated_password);
-/// ```
-pub fn generate_with_config<S: AsRef<str>>(
-    password: S,
-    domain: S,
-    secret: Option<String>,
-    length: u8,
-    hash_rounds: u8,
-    hash_algorithm: HashAlgorithm,
-) -> String {
-    let length = length as usize;
-    let mut hash: String = format!(
-        "{}{}:{}",
-        password.as_ref(),
-        secret.unwrap_or("".to_string()),
-        domain.as_ref()
-    );
-
-    // Hash the input for the requested number of rounds, then continue hashing
-    // until the password policy is satisfied.
-    let mut i = 0;
-    while i < hash_rounds || !validate_password(&hash[..length]) {
-        hash = match hash_algorithm {
-            HashAlgorithm::MD5 => base64_md5(hash),
-            HashAlgorithm::SHA512 => base64_sha512(hash),
-        };
-        i += 1;
-    }
-
-    hash[..length].to_string()
 }
 
 #[derive(Clone, clap::ArgEnum)]
