@@ -1,7 +1,7 @@
 RustGenPass
 ===========
 
-[![Cross-compile](https://github.com/ollej/rustgenpass/actions/workflows/crosscompile.yml/badge.svg)](https://github.com/ollej/rustgenpass/actions/workflows/crosscompile.yml)
+[![Cross-compile](https://github.com/ollej/rustgenpass/actions/workflows/crosscompile.yml/badge.svg)](https://github.com/ollej/rustgenpass/actions/workflows/crosscompile.yml) ![Crates.io](https://img.shields.io/crates/v/rustgenpass) ![docs.rs](https://img.shields.io/docsrs/rustgenpass) ![Crates.io](https://img.shields.io/crates/l/rustgenpass)
 
 An implementation in Rust of the [SuperGenPass](https://chriszarate.github.io/supergenpass/) utility.
 
