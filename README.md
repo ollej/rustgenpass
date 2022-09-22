@@ -8,6 +8,8 @@ An implementation in Rust of the [SuperGenPass](https://chriszarate.github.io/su
 Hash a master password into unique, complex passwords specific for each
 website.
 
+[Documentation](https://docs.rs/rustgenpass/latest/rustgenpass/) on docs.rs
+
 Usage
 -----
 
