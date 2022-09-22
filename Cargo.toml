@@ -33,3 +33,4 @@ opt-level = 'z'
 lto = true
 panic = 'abort'
 codegen-units = 1
+strip = true  # Automatically strip symbols from the binary.
