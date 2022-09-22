@@ -90,8 +90,6 @@ jobs:
     needs: build
     steps:
       - uses: actions/checkout@v2
-        with:
-          fetch-depth: 0
       - uses: actions-rs/toolchain@v1
         with:
           toolchain: stable
@@ -101,4 +99,5 @@ jobs:
         with:
           registry-token: ${{ secrets.CARGO_REGISTRY_TOKEN }}
           args: --allow-dirty
+          check-repo: false
           ignore-unpublished-changes: true
