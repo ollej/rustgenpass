@@ -90,6 +90,12 @@ jobs:
     needs: build
     steps:
       - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          override: true
       - name: Publish release to crates.io
         uses: katyo/publish-crates@v1
         with:
