@@ -18,22 +18,25 @@ jobs:
             zip_file: rustgenpass.tar.gz
             asset_name: rustgenpass-linux-$tag.tar.gz
             directory: rustgenpass-${{ github.ref_name }}
-            upx_args: --best --lzma
-            upx_strip: true
+            upx:
+              args: --best --lzma
+              strip: true
           - os: windows-latest
             artifact_name: rgp.exe
             zip_file: rgp.zip
             asset_name: rustgenpass-windows-$tag.zip
             directory: rustgenpass-${{ github.ref_name }}
-            upx_args: -9
-            upx_strip: false
+            upx:
+              args: -9
+              strip: false
           - os: macos-latest
             artifact_name: rgp
             zip_file: rgp.zip
             asset_name: rustgenpass-macos-$tag.zip
             directory: rustgenpass-${{ github.ref_name }}
-            upx_args: --best
-            upx_strip: true
+            upx:
+              args: --best
+              strip: true
 
     steps:
       - uses: actions/checkout@v2
@@ -50,26 +53,26 @@ jobs:
         uses: svenstaro/upx-action@v2
         with:
           file: target/release/${{ matrix.config.artifact_name }}
-          args: ${{ matrix.config.upx_args }}
-          strip: ${{ matrix.config.upx_strip }}
+          args: ${{ matrix.config.upx.args }}
+          strip: ${{ matrix.config.upx.strip }}
       - name: Zip Linux release archive
         if: runner.os == 'Linux'
         run: |
-          mkdir ${{ matrix.config.directory }}
+          mkdir -p ${{ matrix.config.directory }}
           cp target/release/${{ matrix.config.artifact_name }} README.md LICENSE ${{ matrix.config.directory }}
-          tar -zcf ${{ matrix.config.zip_file }} ${{ matrix.config.directory }}
+          tar --remove-files -zcf ${{ matrix.config.zip_file }} ${{ matrix.config.directory }}
       - name: Zip Windows release archive
         if: runner.os == 'Windows'
         run: |
           mkdir -p ${{ matrix.config.directory }}
           cp target/release/${{ matrix.config.artifact_name }},README.md,LICENSE ${{ matrix.config.directory }}
-          7z a -tzip ${{ matrix.config.zip_file }} ${{ matrix.config.directory }}
+          7z a -sdel -tzip ${{ matrix.config.zip_file }} ${{ matrix.config.directory }}
       - name: Zip MacOS release archive
         if: runner.os == 'macOS'
         run: |
           mkdir -p ${{ matrix.config.directory }}
           cp target/release/${{ matrix.config.artifact_name }} README.md LICENSE ${{ matrix.config.directory }}
-          7z a -tzip ${{ matrix.config.zip_file }} ${{ matrix.config.directory }}
+          7z a -sdel -tzip ${{ matrix.config.zip_file }} ${{ matrix.config.directory }}
       - name: Upload binaries to release
         uses: svenstaro/upload-release-action@v2
         with:
@@ -77,6 +80,10 @@ jobs:
           file: ${{ matrix.config.zip_file }}
           asset_name: ${{ matrix.config.asset_name }}
           tag: ${{ github.ref }}
+      - name: Remove packaged zip file after upload
+        uses: JesseTG/rm@v1.0.3
+        with:
+          path: ${{ matrix.config.zip_file }}
       - uses: katyo/publish-crates@v1
         with:
             registry-token: ${{ secrets.CARGO_REGISTRY_TOKEN }}
