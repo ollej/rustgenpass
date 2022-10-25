@@ -1,12 +1,24 @@
-use clap::Parser;
 use rustgenpass::{generate_with_config, get_hostname_with_config, Cli};
+use {
+    clap::Parser,
+    dialoguer::{Input, Password},
+};
 
-fn main() -> Result<(), String> {
+fn main() -> Result<(), Box<dyn std::error::Error>> {
     let cli = Cli::parse();
-    let password = cli.password.clone().unwrap_or_else(|| {
-        rpassword::prompt_password("Enter master password: ").expect("You must enter a password.")
-    });
-    let domain = get_hostname_with_config(&cli.domain, cli.clone().into())?;
+    let input_domain = if let Some(domain) = cli.domain.clone() {
+        domain
+    } else {
+        Input::new().with_prompt("Domain").interact()?
+    };
+    let password = if let Some(password) = cli.password.clone() {
+        password
+    } else {
+        Password::new()
+            .with_prompt("Enter master password")
+            .interact()?
+    };
+    let domain = get_hostname_with_config(input_domain, cli.clone().into())?;
     let generated_password = generate_with_config(password, domain, cli.into());
     println!("{}", generated_password);
     Ok(())

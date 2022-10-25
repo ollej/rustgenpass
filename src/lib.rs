@@ -80,6 +80,7 @@ use clap::Parser;
 use md5::Md5;
 use regex::Regex;
 use sha2::{Digest, Sha512};
+use std::fmt;
 
 lazy_static! {
     static ref RE_STARTS_WITH_LOWERCASE_LETTER: Regex = Regex::new(r"^[a-z]").unwrap();
@@ -193,7 +194,7 @@ pub fn generate_with_config<S: Into<String>>(
 /// let hostname = get_hostname("https://user:pass@www.example.com:4711/path/file.html");
 /// assert_eq!("example.com", hostname.unwrap());
 /// ```
-pub fn get_hostname<S: Into<String>>(domain: S) -> Result<String, String> {
+pub fn get_hostname<S: Into<String>>(domain: S) -> Result<String, RustgenpassError> {
     get_hostname_with_config(domain, HostnameConfig::default())
 }
 
@@ -219,14 +220,14 @@ pub fn get_hostname<S: Into<String>>(domain: S) -> Result<String, String> {
 pub fn get_hostname_with_config<S: Into<String>>(
     domain: S,
     config: HostnameConfig,
-) -> Result<String, String> {
+) -> Result<String, RustgenpassError> {
     let domain = domain.into();
     if config.passthrough {
         return Ok(domain);
     }
     let hostname = match RE_DOMAIN.captures(domain.as_ref()) {
         Some(hostname) => hostname.get(1).unwrap().as_str(),
-        None => return Err(format!("URL is invalid: {}", domain)),
+        None => return Err(RustgenpassError::InvalidUrl(domain)),
     };
 
     // If the hostname is an IP address, no further processing can be done.
@@ -295,6 +296,21 @@ fn base64_encode(digest: &[u8]) -> String {
         })
         .collect()
 }
+
+#[derive(Debug)]
+pub enum RustgenpassError {
+    InvalidUrl(String),
+}
+
+impl fmt::Display for RustgenpassError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            RustgenpassError::InvalidUrl(domain) => write!(f, "Invalid URL: {}", domain),
+        }
+    }
+}
+
+impl std::error::Error for RustgenpassError {}
 
 #[derive(Debug)]
 pub struct GenerateConfig {
@@ -368,7 +384,7 @@ pub struct Cli {
 
     /// Domain / URL to generate password for
     #[clap(short, long, value_parser)]
-    pub domain: String,
+    pub domain: Option<String>,
 
     /// Length of generated password, min: 4, max: 24
     #[clap(short, long, default_value_t = 10, value_parser = clap::value_parser!(u8).range(4..=24))]

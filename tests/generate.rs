@@ -1,6 +1,6 @@
 #[cfg(test)]
 mod test_generate_with_url {
-    use rustgenpass::{generate_with_config, generate_with_url, GenerateConfig, HashAlgorithm};
+    use rustgenpass::{generate_with_config, generate_with_url, GenerateConfig};
 
     #[test]
     fn generate_with_url_works_like_generate_with_config() {
