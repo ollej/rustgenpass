@@ -307,7 +307,7 @@ dependencies = [
 
 [[package]]
 name = "rustgenpass"
-version = "0.4.0"
+version = "0.5.0"
 dependencies = [
  "base64",
  "clap",
