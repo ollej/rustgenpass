@@ -136,7 +136,7 @@ pub fn generate_with_config<S: Into<String>>(
     let mut hash: String = format!(
         "{}{}:{}",
         password.into(),
-        secret.unwrap_or("".to_string()),
+        secret.unwrap_or_else(|| "".to_string()),
         domain.into()
     );
 
@@ -212,7 +212,7 @@ pub fn get_hostname_with_config<S: Into<String>>(
 /// Remove subdomains while respecting a number of secondary ccTLDs.
 fn remove_subdomain<S: Into<String>>(hostname: S) -> String {
     let hostname = hostname.into().to_lowercase();
-    let parts = hostname.split(".").collect::<Vec<&str>>();
+    let parts = hostname.split('.').collect::<Vec<&str>>();
 
     // A hostname with less than three parts is as short as it will get.
     if parts.len() < 2 {
