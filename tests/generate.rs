@@ -1,6 +1,6 @@
 #[cfg(test)]
 mod test_generate_with_url {
-    use rustgenpass::{generate_with_config, generate_with_url, HashAlgorithm};
+    use rustgenpass::{generate_with_config, generate_with_url, GenerateConfig, HashAlgorithm};
 
     #[test]
     fn generate_with_url_works_like_generate_with_config() {
@@ -9,14 +9,7 @@ mod test_generate_with_url {
             generate_with_url("masterpassword", "https://www.example.com/foo/bar.html")
         );
         assert_eq!(
-            generate_with_config(
-                "masterpassword",
-                "example.com",
-                None,
-                10,
-                10,
-                HashAlgorithm::MD5
-            ),
+            generate_with_config("masterpassword", "example.com", GenerateConfig::default()),
             generate_with_url("masterpassword", "https://www.example.com/foo/bar.html")
         );
     }
@@ -24,20 +17,13 @@ mod test_generate_with_url {
 
 #[cfg(test)]
 mod test_generate {
-    use rustgenpass::{generate, generate_with_config, HashAlgorithm};
+    use rustgenpass::{generate, generate_with_config, GenerateConfig};
 
     #[test]
     fn generate_works_like_generate_with_config() {
         assert_eq!("jHMOHn7bRs", generate("masterpassword", "example.com"));
         assert_eq!(
-            generate_with_config(
-                "masterpassword",
-                "example.com",
-                None,
-                10,
-                10,
-                HashAlgorithm::MD5
-            ),
+            generate_with_config("masterpassword", "example.com", GenerateConfig::default()),
             generate("masterpassword", "example.com")
         );
     }
@@ -45,7 +31,7 @@ mod test_generate {
 
 #[cfg(test)]
 mod test_generate_with_config {
-    use rustgenpass::{generate_with_config, HashAlgorithm};
+    use rustgenpass::{generate_with_config, GenerateConfig, HashAlgorithm};
 
     #[test]
     fn with_length() {
@@ -54,32 +40,25 @@ mod test_generate_with_config {
             generate_with_config(
                 "masterpassword",
                 "example.com",
-                None,
-                5,
-                10,
-                HashAlgorithm::MD5
+                GenerateConfig {
+                    length: 5,
+                    ..GenerateConfig::default()
+                }
             )
         );
         assert_eq!(
             "jHMOHn7bRs",
-            generate_with_config(
-                "masterpassword",
-                "example.com",
-                None,
-                10,
-                10,
-                HashAlgorithm::MD5
-            )
+            generate_with_config("masterpassword", "example.com", GenerateConfig::default())
         );
         assert_eq!(
             "jHMOHn7bRszh9PiXKswZEwAA",
             generate_with_config(
                 "masterpassword",
                 "example.com",
-                None,
-                24,
-                10,
-                HashAlgorithm::MD5
+                GenerateConfig {
+                    length: 24,
+                    ..GenerateConfig::default()
+                }
             )
         );
     }
@@ -91,10 +70,10 @@ mod test_generate_with_config {
             generate_with_config(
                 "masterpassword",
                 "example.com",
-                None,
-                10,
-                1,
-                HashAlgorithm::MD5
+                GenerateConfig {
+                    hash_rounds: 1,
+                    ..GenerateConfig::default()
+                }
             )
         );
         assert_eq!(
@@ -102,10 +81,10 @@ mod test_generate_with_config {
             generate_with_config(
                 "masterpassword",
                 "example.com",
-                None,
-                10,
-                10,
-                HashAlgorithm::MD5
+                GenerateConfig {
+                    hash_rounds: 10,
+                    ..GenerateConfig::default()
+                }
             )
         );
         assert_eq!(
@@ -113,10 +92,10 @@ mod test_generate_with_config {
             generate_with_config(
                 "masterpassword",
                 "example.com",
-                None,
-                10,
-                50,
-                HashAlgorithm::MD5
+                GenerateConfig {
+                    hash_rounds: 50,
+                    ..GenerateConfig::default()
+                }
             )
         );
     }
@@ -129,10 +108,11 @@ mod test_generate_with_config {
             generate_with_config(
                 "masterpassword",
                 "example.com",
-                secret.clone(),
-                4,
-                10,
-                HashAlgorithm::MD5
+                GenerateConfig {
+                    secret: secret.clone(),
+                    length: 4,
+                    ..GenerateConfig::default()
+                }
             )
         );
         assert_eq!(
@@ -140,10 +120,10 @@ mod test_generate_with_config {
             generate_with_config(
                 "masterpassword",
                 "example.com",
-                secret.clone(),
-                10,
-                10,
-                HashAlgorithm::MD5
+                GenerateConfig {
+                    secret: secret.clone(),
+                    ..GenerateConfig::default()
+                }
             )
         );
         assert_eq!(
@@ -151,10 +131,11 @@ mod test_generate_with_config {
             generate_with_config(
                 "masterpassword",
                 "example.com",
-                secret.clone(),
-                24,
-                10,
-                HashAlgorithm::MD5
+                GenerateConfig {
+                    secret: secret.clone(),
+                    length: 24,
+                    ..GenerateConfig::default()
+                }
             )
         );
     }
@@ -167,10 +148,12 @@ mod test_generate_with_config {
             generate_with_config(
                 "masterpassword",
                 "example.com",
-                secret.clone(),
-                4,
-                10,
-                HashAlgorithm::SHA512
+                GenerateConfig {
+                    secret: secret.clone(),
+                    length: 4,
+                    hash_algorithm: HashAlgorithm::SHA512,
+                    ..GenerateConfig::default()
+                }
             )
         );
         assert_eq!(
@@ -178,10 +161,11 @@ mod test_generate_with_config {
             generate_with_config(
                 "masterpassword",
                 "example.com",
-                secret.clone(),
-                10,
-                10,
-                HashAlgorithm::SHA512
+                GenerateConfig {
+                    secret: secret.clone(),
+                    hash_algorithm: HashAlgorithm::SHA512,
+                    ..GenerateConfig::default()
+                }
             )
         );
         assert_eq!(
@@ -189,10 +173,12 @@ mod test_generate_with_config {
             generate_with_config(
                 "masterpassword",
                 "example.com",
-                secret.clone(),
-                24,
-                10,
-                HashAlgorithm::SHA512
+                GenerateConfig {
+                    secret: secret.clone(),
+                    length: 24,
+                    hash_algorithm: HashAlgorithm::SHA512,
+                    ..GenerateConfig::default()
+                }
             )
         );
     }
