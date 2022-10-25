@@ -12,18 +12,22 @@ mod test_get_hostname {
 #[cfg(test)]
 mod test_get_hostname_with_config {
     use regex::Regex;
-    use rustgenpass::get_hostname_with_config;
+    use rustgenpass::{get_hostname_with_config, HostnameConfig};
 
     #[test]
     fn passes_through_input() {
         let url = "https://www.example.com/foo/bar.html";
-        assert_eq!(url, get_hostname_with_config(url, true, false).unwrap());
+        let config = HostnameConfig {
+            passthrough: true,
+            ..HostnameConfig::default()
+        };
+        assert_eq!(url, get_hostname_with_config(url, config).unwrap());
     }
 
     #[test]
     fn returns_error_with_empty_string() {
         let url = "";
-        assert!(get_hostname_with_config(url, false, false).is_err());
+        assert!(get_hostname_with_config(url, HostnameConfig::default()).is_err());
     }
 
     #[test]
@@ -31,7 +35,7 @@ mod test_get_hostname_with_config {
         let url = "%invalid_url%";
         assert_eq!(
             "%invalid_url%",
-            get_hostname_with_config(url, false, false).unwrap()
+            get_hostname_with_config(url, HostnameConfig::default()).unwrap()
         );
     }
 
@@ -40,16 +44,20 @@ mod test_get_hostname_with_config {
         let url = "https://127.0.0.1/foo/bar.html";
         assert_eq!(
             "127.0.0.1",
-            get_hostname_with_config(url, false, false).unwrap()
+            get_hostname_with_config(url, HostnameConfig::default()).unwrap()
         );
     }
 
     #[test]
     fn keep_subdomains_flag() {
         let url = "https://foo.bar.example.com/foo/bar.html";
+        let config = HostnameConfig {
+            keep_subdomains: true,
+            ..HostnameConfig::default()
+        };
         assert_eq!(
             "foo.bar.example.com",
-            get_hostname_with_config(url, false, true).unwrap()
+            get_hostname_with_config(url, config).unwrap()
         );
     }
 
@@ -58,7 +66,7 @@ mod test_get_hostname_with_config {
         let url = "https://foo.bar.example.com/foo/bar.html";
         assert_eq!(
             "example.com",
-            get_hostname_with_config(url, false, false).unwrap()
+            get_hostname_with_config(url, HostnameConfig::default()).unwrap()
         );
     }
 
@@ -67,7 +75,7 @@ mod test_get_hostname_with_config {
         let url = "https://foo.bar.example.co.uk/foo/bar.html";
         assert_eq!(
             "example.co.uk",
-            get_hostname_with_config(url, false, false).unwrap()
+            get_hostname_with_config(url, HostnameConfig::default()).unwrap()
         );
     }
 
@@ -76,7 +84,7 @@ mod test_get_hostname_with_config {
         let url = "https://localhost/foo/bar.html";
         assert_eq!(
             "localhost",
-            get_hostname_with_config(url, false, false).unwrap()
+            get_hostname_with_config(url, HostnameConfig::default()).unwrap()
         );
     }
 
@@ -85,7 +93,7 @@ mod test_get_hostname_with_config {
         let url = "https://localhost:4711/foo/bar.html";
         assert_eq!(
             "localhost",
-            get_hostname_with_config(url, false, false).unwrap()
+            get_hostname_with_config(url, HostnameConfig::default()).unwrap()
         );
     }
 
@@ -94,7 +102,7 @@ mod test_get_hostname_with_config {
         let url = "https://foo:bar@localhost/foo/bar.html";
         assert_eq!(
             "localhost",
-            get_hostname_with_config(url, false, false).unwrap()
+            get_hostname_with_config(url, HostnameConfig::default()).unwrap()
         );
     }
 

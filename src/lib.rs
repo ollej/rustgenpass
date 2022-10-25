@@ -44,8 +44,9 @@
 //!
 //! ## Full example with passthrough of URL
 //! ```rust
-//! use rustgenpass::{ get_hostname_with_config, generate_with_config, HashAlgorithm };
-//! let domain = get_hostname_with_config("https://www.example.com/foo/bar.html", true, false).unwrap();
+//! use rustgenpass::{ get_hostname_with_config, generate_with_config, HostnameConfig, HashAlgorithm };
+//! let config = HostnameConfig { passthrough: true, ..HostnameConfig::default() };
+//! let domain = get_hostname_with_config("https://www.example.com/foo/bar.html", config).unwrap();
 //! let generated_password = generate_with_config("masterpassword", &domain, None, 24, 50, HashAlgorithm::MD5);
 //! assert_eq!("ufLehPcQ8FgvRZX8ZHOg5wAA", generated_password);
 //! ```
@@ -168,7 +169,7 @@ pub fn generate_with_config<S: Into<String>>(
 /// assert_eq!("example.com", hostname.unwrap());
 /// ```
 pub fn get_hostname<S: Into<String>>(domain: S) -> Result<String, String> {
-    get_hostname_with_config(domain, false, false)
+    get_hostname_with_config(domain, HostnameConfig::default())
 }
 
 /// Isolate the domain name of a URL.
@@ -182,17 +183,20 @@ pub fn get_hostname<S: Into<String>>(domain: S) -> Result<String, String> {
 /// # Examples
 ///
 /// ```
-/// use rustgenpass::get_hostname_with_config;
-/// let hostname = get_hostname_with_config("https://user:pass@www.example.com:4711/path/file.html", false, false);
+/// use rustgenpass::{get_hostname_with_config, HostnameConfig};
+/// let config = HostnameConfig {
+///   passthrough: false,
+///   keep_subdomains: false,
+/// };
+/// let hostname = get_hostname_with_config("https://user:pass@www.example.com:4711/path/file.html", config);
 /// assert_eq!("example.com", hostname.unwrap());
 /// ```
 pub fn get_hostname_with_config<S: Into<String>>(
     domain: S,
-    passthrough: bool,
-    keep_subdomains: bool,
+    config: HostnameConfig,
 ) -> Result<String, String> {
     let domain = domain.into();
-    if passthrough {
+    if config.passthrough {
         return Ok(domain);
     }
     let hostname = match RE_DOMAIN.captures(domain.as_ref()) {
@@ -201,7 +205,7 @@ pub fn get_hostname_with_config<S: Into<String>>(
     };
 
     // If the hostname is an IP address, no further processing can be done.
-    if RE_IP_ADDRESS.is_match(hostname) || keep_subdomains {
+    if RE_IP_ADDRESS.is_match(hostname) || config.keep_subdomains {
         return Ok(hostname.to_string());
     }
 
@@ -267,14 +271,29 @@ fn base64_encode(digest: &[u8]) -> String {
         .collect()
 }
 
-#[derive(Clone, clap::ValueEnum)]
+#[derive(Default, Debug)]
+pub struct HostnameConfig {
+    pub passthrough: bool,
+    pub keep_subdomains: bool,
+}
+
+impl From<Cli> for HostnameConfig {
+    fn from(cli: Cli) -> Self {
+        HostnameConfig {
+            passthrough: cli.passthrough,
+            keep_subdomains: cli.keep_subdomains,
+        }
+    }
+}
+
+#[derive(Clone, Debug, clap::ValueEnum)]
 /// Supported hashing algorithms
 pub enum HashAlgorithm {
     MD5,
     SHA512,
 }
 
-#[derive(Parser)]
+#[derive(Parser, Clone, Debug)]
 #[clap(author, version, about, long_about = None)]
 /// Options parsed from command line used by the binary
 pub struct Cli {
