@@ -12,13 +12,13 @@ keywords = ["password", "security", "hash", "supergenpass", "cli"]
 categories = ["command-line-utilities"]
 
 [dependencies]
-base64 = "0.13"
-clap = { version = "3.2", features = ["derive"] }
-lazy_static = "1.4"
-md-5 = "0.10"
-regex = "1.6"
-rpassword = "7.0"
-sha2 = "0.10"
+base64 = "0.13.1"
+clap = { version = "4.0.18", features = ["derive"] }
+lazy_static = "1.4.0"
+md-5 = "0.10.5"
+regex = "1.6.0"
+rpassword = "7.1.0"
+sha2 = "0.10.6"
 
 [lib]
 name = "rustgenpass"

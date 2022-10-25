@@ -267,7 +267,7 @@ fn base64_encode(digest: &[u8]) -> String {
         .collect()
 }
 
-#[derive(Clone, clap::ArgEnum)]
+#[derive(Clone, clap::ValueEnum)]
 /// Supported hashing algorithms
 pub enum HashAlgorithm {
     MD5,
@@ -307,7 +307,7 @@ pub struct Cli {
     pub passthrough: bool,
 
     /// Hashing method to use
-    #[clap(short = 'H', long, arg_enum, default_value_t = HashAlgorithm::MD5)]
+    #[clap(short = 'H', long, value_enum, default_value_t = HashAlgorithm::MD5)]
     pub hash: HashAlgorithm,
 }
 
