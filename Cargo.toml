@@ -42,3 +42,6 @@ lto = true
 panic = 'abort'
 codegen-units = 1
 strip = true  # Automatically strip symbols from the binary.
+
+[package.metadata.cargo-machete]
+ignored = ["md-5"]
