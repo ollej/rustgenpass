@@ -14,7 +14,7 @@ Usage
 -----
 
 ```
-rustgenpass 0.5.0
+rustgenpass 0.6.0
 Generate a hashed password similar to SuperGenPass.
 
 USAGE:
