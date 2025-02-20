@@ -12,7 +12,7 @@ mod test_get_hostname {
 #[cfg(test)]
 mod test_get_hostname_with_config {
     use regex::Regex;
-    use rustgenpass::{get_hostname_with_config, HostnameConfig};
+    use rustgenpass::{HostnameConfig, get_hostname_with_config};
 
     #[test]
     fn passes_through_input() {

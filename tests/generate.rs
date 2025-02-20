@@ -1,6 +1,6 @@
 #[cfg(test)]
 mod test_generate_with_url {
-    use rustgenpass::{generate_with_config, generate_with_url, GenerateConfig};
+    use rustgenpass::{GenerateConfig, generate_with_config, generate_with_url};
 
     #[test]
     fn generate_with_url_works_like_generate_with_config() {
@@ -17,7 +17,7 @@ mod test_generate_with_url {
 
 #[cfg(test)]
 mod test_generate {
-    use rustgenpass::{generate, generate_with_config, GenerateConfig};
+    use rustgenpass::{GenerateConfig, generate, generate_with_config};
 
     #[test]
     fn generate_works_like_generate_with_config() {
@@ -31,7 +31,7 @@ mod test_generate {
 
 #[cfg(test)]
 mod test_generate_with_config {
-    use rustgenpass::{generate_with_config, GenerateConfig, HashAlgorithm};
+    use rustgenpass::{GenerateConfig, HashAlgorithm, generate_with_config};
 
     #[test]
     fn with_length() {

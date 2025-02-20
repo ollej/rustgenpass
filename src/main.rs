@@ -1,4 +1,4 @@
-use rustgenpass::{generate_with_config, get_hostname_with_config, Cli};
+use rustgenpass::{Cli, generate_with_config, get_hostname_with_config};
 use {
     clap::Parser,
     dialoguer::{Input, Password},
